@@ -63,6 +63,7 @@ def pridat_ukol():
 
     print("Úkol byl úspěšně přidán.")
 
+
 def zobrazit_ukoly():
     conn = pripojeni()
     kurzor = conn.cursor()
@@ -81,6 +82,7 @@ def zobrazit_ukoly():
     kurzor.close()
     conn.close()
 
+
 def aktualizovat_ukol():
     conn = pripojeni()
     kurzor = conn.cursor()
@@ -91,6 +93,7 @@ def aktualizovat_ukol():
     if not ukoly:
         print("Žádné úkoly nejsou dostupné")
         return
+
 
 def odstranit_ukol():
     conn = pripojeni()
@@ -122,7 +125,8 @@ def odstranit_ukol():
 
         kurzor.execute("DELETE FROM ukoly WHERE id = %s")
         print("Úkol byl odstraněn.")
-
+        
+        coon.commit()
         kurzor.close()
         conn.close()
 
