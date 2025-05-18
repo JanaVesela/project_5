@@ -19,7 +19,7 @@ def pripojeni():
         print("❌ Chyba při připojení:", e)
 
 
-def vytvor_tabuku():
+def vytvor_tabulku():
     conn = pripojeni()
     kurzor = conn.cursor()
 
@@ -39,29 +39,31 @@ def vytvor_tabuku():
 
     print("Tabulka 'ukoly' byla vytvořena nebo už existuje.")
 
-      
+
 def pridat_ukol():
     while True:
         nazev = input("Zadejte název úkolu: ").strip()
-        if nazev == "": #pokud uživatel nezadá název úkolu program vypíše chybovou hlášku a poté bude muset zadat znova název úkolu
+        if not nazev:
             print("Název úkolu nesmí být prázdný.")
             continue
         popis = input("Zadejte popis úkolu: ").strip()
-        if popis == "": #pokud uživatel nezadá popis úkolu program vypíše chybovou hlášku a poté bude muset zadat znova popis úkolu
+        if not popis:
             print("Popis úkolu nesmí být prázdný.")
             continue
+
+
+        conn = pripojeni()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO ukoly (nazev, popis)
+            VALUES (%s, %s)
+        """, (nazev, popis))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print("Úkol byl úspěšně přidán.")
         break
-
-    conn = pripojeni()
-    kurzor = conn.cursor()
-
-    kurzor.execute("INSERT INTO ukoly (nazev, popis) VALUES (%s, %s)", (nazev, popis))
-    
-    conn.commit()
-    kurzor.close()
-    conn.close()
-
-    print("Úkol byl úspěšně přidán.")
 
 
 def zobrazit_ukoly():
@@ -76,9 +78,9 @@ def zobrazit_ukoly():
     else:
         print("Seznam úkolů:")
         for ukol in vysledky:
-            print(f"Název: {ukol[1]}")
+            print(f"ID: {ukol[0]}, Název: {ukol[1]}")
 
-    conn.commit()
+    
     kurzor.close()
     conn.close()
 
@@ -87,26 +89,63 @@ def aktualizovat_ukol():
     conn = pripojeni()
     kurzor = conn.cursor()
 
-    kurzor.execute("SELECT id, nazev, stav FROM ukoly")
-    vysledky_1 = kurzor.fetchall()
+    id_ukolu = int(input("Zadejte ID úkolu, který chcete aktualizovat: "))
+    
+    kurzor.execute("SELECT id, stav FROM ukoly WHERE id = %s", (id_ukolu,))
+    ukol = kurzor.fetchall()
 
-    if not ukoly:
-        print("Žádné úkoly nejsou dostupné")
+    if not ukol:
+        print("Nejsou žádné úkoly k aktualizaci.")
         return
+    
+    print("\nSeznam úkolů:")
+    for ukol in ukol:
+        print(f"{ukol[0]}: {ukol[1]} (Stav: {ukol[2]})")
+
+    while True:
+        try:
+            
+
+            if not any(ukol[0] == id_ukolu for ukol in ukol):
+                print("Zadané ID úkolu neexistuje. Zkuste to znovu.")
+                continue
+
+            novy_stav = input("Zadejte nový stav (Probíhá / Hotovo): ").capitalize()
+            if novy_stav not in ["Probíhá", "Hotovo"]:
+                print("Neplatný stav. Zadejte buď 'Probíhá' nebo 'Hotovo'.")
+                continue
+
+            kurzor.execute("UPDATE ukoly SET stav = %s WHERE id = %s", (novy_stav, id_ukolu))
+            conn.commit()
+            print(f"Úkol {id_ukolu} byl úspěšně aktualizován na stav '{novy_stav}'.")
+            break
+
+        except ValueError:
+            print("Zadejte platné číslo ID.")
+
+    kurzor.close()
+    conn.close()
 
 
 def odstranit_ukol():
     conn = pripojeni()
     kurzor = conn.cursor()
 
-    kurzor.execute("SELECT id, nazev, FROM ukoly")
+    kurzor.execute("SELECT id, nazev FROM ukoly")
     ukoly = kurzor.fetchall()
 
     if not ukoly:
         print("Žádné úkoly nejsou k odstranění.")
+        kurzor.close()
+        conn.close()
         return
+    
+    print("\n Seznam úkolů:")
+    for ukol in ukoly:
+        print(f"{ukol[0]}: {ukol[1]}")
+
     while True:
-        zobrazit_ukoly():
+        zobrazit_ukoly()
         
         cislo_ukolu = input("Zadejte číslo úkolu, který chcete odstranit: ").strip()
         if cislo_ukolu == "":
@@ -117,21 +156,30 @@ def odstranit_ukol():
             print("Zadejte platné číslo.")
             continue
 
-        if cislo_ukolu < 0 or cislo_ukolu >= len(ukoly):
-            print("Číslo úkolu neexistuje.")
+        id_ukolu = int(cislo_ukolu)
+        if not any(ukol[0] == id_ukolu for ukol in ukoly):
+            print("Zadané ID úkolu neexistuje.")
             continue
-        #potvrzeni a smazani
-        ukol_k_odstraneni = 
-
-        kurzor.execute("DELETE FROM ukoly WHERE id = %s")
-        print("Úkol byl odstraněn.")
         
-        coon.commit()
-        kurzor.close()
-        conn.close()
+        potvrzeni_odstraneni = input(f"Opravdu chcete odstranit úkol {id_ukolu}? (a/n): ").lower()
+
+        if potvrzeni_odstraneni == 'a':
+            kurzor.execute("DELETE FROM ukoly WHERE id = %s", (id_ukolu,))
+            conn.commit()
+            print("Úkol byl odstraněn.")
+            
+        else:
+            print("Odstranění zrušeno.")
+        break
+
+    kurzor.close()
+    conn.close()
+    print("Odstranění zrušeno.")
+
+
 
 def hlavni_menu():
-    vytvor_tabuku()
+    vytvor_tabulku()
     while True:
         print("\n HLAVNÍ MENU")
         print("1. Přidat úkol")
@@ -154,6 +202,7 @@ def hlavni_menu():
             break
         else:
             print("Neplatná volba, zadejte číslo mezi 1 a 5.")
+
 
 
 if __name__ == "__main__":
