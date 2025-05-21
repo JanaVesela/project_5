@@ -52,7 +52,7 @@ def test_odstranit_ukol_positive():
     #pridame ukol co pak odstranime
     pridat_ukol("školka","seznam úkolů školka")
 
-    ukoly = zobrazit_ukoly
+    ukoly = zobrazit_ukoly()
     id_ukolu = None
     for ukol in ukoly:
         if ukol["nazev"] == "školka":
