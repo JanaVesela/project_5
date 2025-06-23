@@ -149,27 +149,25 @@ def hlavni_menu():
         print("5. Ukončit program")
         volba = input("Vyber možnost (1-5): ").strip()
 
-        try:
-            if volba == '1':
-                nazev = input("Zadej název úkolu: ")
-                popis = input("Zadej popis úkolu: ")
-                pridat_ukol(nazev, popis)
-            elif volba == '2':
-                zobrazit_ukoly()
-            elif volba == '3':
-                id_ukolu = int(input("Zadej ID úkolu: "))
-                novy_stav = input("Zadej nový stav (Probíhá / Hotovo): ")
-                aktualizovat_ukol(id_ukolu, novy_stav)
-            elif volba == '4':
-                id_ukolu = int(input("Zadej ID úkolu: "))
-                odstranit_ukol(id_ukolu)
-            elif volba == '5':
-                print("Program končí")
-                break
-            else:
+    
+        if volba == '1':
+            nazev = input("Zadej název úkolu: ")
+            popis = input("Zadej popis úkolu: ")
+            pridat_ukol(nazev, popis)
+        elif volba == '2':
+            zobrazit_ukoly()
+        elif volba == '3':
+            id_ukolu = int(input("Zadej ID úkolu: "))
+            novy_stav = input("Zadej nový stav (Probíhá / Hotovo): ")
+            aktualizovat_ukol(id_ukolu, novy_stav)
+        elif volba == '4':
+            id_ukolu = int(input("Zadej ID úkolu: "))
+            odstranit_ukol(id_ukolu)
+        elif volba == '5':
+            print("Program končí")
+            break
+        else:
                 print("Neplatná volba, zadejte číslo mezi 1 a 5.")
-        except Exception as e:
-            print("⚠️ Chyba:", e)
 
 
 if __name__ == "__main__":
