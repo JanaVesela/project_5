@@ -1,7 +1,35 @@
 import mysql.connector
 
-def pripojeni():
+def pripojeni_k_serveru():
     print("🔌 Zkouším se připojit...")
+    try:
+        conn = mysql.connector.connect(
+            host="127.0.0.1",
+            user="root",
+            password="11111",
+            port=3306,
+            connect_timeout=5,
+            ssl_disabled=True
+        )
+        print("✅ Připojení úspěšné!")
+        return conn
+    except Exception as e:
+        print("❌ Chyba při připojení:", e)
+
+def vytvor_databazi():
+    """Vytvoří databázi, pokud neexistuje."""
+    conn = pripojeni_k_serveru()
+    kurzor = conn.cursor()
+    kurzor.execute("CREATE DATABASE IF NOT EXISTS spravce_ukolu")
+    conn.commit()
+    kurzor.close()
+    conn.close()
+    print("✅ Databáze 'spravce_ukolu' je připravena.")
+
+
+def pripojeni():
+    """Připojení k databázi 'spravce_ukolu'."""
+    print("🔌 Připojuji se k databázi...")
     try:
         conn = mysql.connector.connect(
             host="127.0.0.1",
@@ -10,14 +38,13 @@ def pripojeni():
             database="spravce_ukolu",
             port=3306,
             connect_timeout=5,
-            ssl_disabled=True,
-            auth_plugin='mysql_native_password'
+            ssl_disabled=True
         )
         print("✅ Připojení úspěšné!")
         return conn
     except Exception as e:
         print("❌ Chyba při připojení:", e)
-
+        exit()
 
 def vytvor_tabulku():
     conn = pripojeni()
@@ -36,7 +63,7 @@ def vytvor_tabulku():
     kurzor.close()
     conn.close()
 
-    print("Tabulka 'ukoly' byla vytvořena nebo už existuje.")
+    print("Tabulka 'ukoly' je připravena.")
 
 
 def pridat_ukol(nazev, popis):
@@ -54,19 +81,28 @@ def pridat_ukol(nazev, popis):
     conn.commit()
     cursor.close()
     conn.close()
-
+    print("✅ Úkol přidán.")
 
 def zobrazit_ukoly():
     conn = pripojeni()
     kurzor = conn.cursor()
 
-    kurzor.execute("SELECT id, nazev FROM ukoly")
+    kurzor.execute("SELECT id, nazev, popis, stav FROM ukoly")
     vysledky = kurzor.fetchall()
 
     kurzor.close()
     conn.close()
 
-    return vysledky
+    ukoly = []
+    for id, nazev, popis, stav in vysledky:
+        ukoly.append({
+            "id": id,
+            "nazev": nazev,
+            "popis": popis,
+            "stav": stav
+        })
+
+    return ukoly
 
 
 def aktualizovat_ukol(id_ukolu, novy_stav):
@@ -83,7 +119,7 @@ def aktualizovat_ukol(id_ukolu, novy_stav):
     conn.commit()
     kurzor.close()
     conn.close()
-
+    print("✅ Úkol aktualizován.")
 
 
 def odstranit_ukol(id_ukolu):
@@ -99,6 +135,8 @@ def odstranit_ukol(id_ukolu):
     conn.commit()
     kurzor.close()
     conn.close()
+    print("✅ Úkol odstraněn.")
+
 
 def hlavni_menu():
     vytvor_tabulku()
@@ -111,20 +149,27 @@ def hlavni_menu():
         print("5. Ukončit program")
         volba = input("Vyber možnost (1-5): ").strip()
 
-        if volba == '1':
-            pridat_ukol()
-        elif volba == '2':
-            zobrazit_ukoly()
-        elif volba == '3':
-            aktualizovat_ukol()
-        elif volba == '4':
-            odstranit_ukol()
-        elif volba == '5':
-            print("Program končí")
-            break
-        else:
-            print("Neplatná volba, zadejte číslo mezi 1 a 5.")
-
+        try:
+            if volba == '1':
+                nazev = input("Zadej název úkolu: ")
+                popis = input("Zadej popis úkolu: ")
+                pridat_ukol(nazev, popis)
+            elif volba == '2':
+                zobrazit_ukoly()
+            elif volba == '3':
+                id_ukolu = int(input("Zadej ID úkolu: "))
+                novy_stav = input("Zadej nový stav (Probíhá / Hotovo): ")
+                aktualizovat_ukol(id_ukolu, novy_stav)
+            elif volba == '4':
+                id_ukolu = int(input("Zadej ID úkolu: "))
+                odstranit_ukol(id_ukolu)
+            elif volba == '5':
+                print("Program končí")
+                break
+            else:
+                print("Neplatná volba, zadejte číslo mezi 1 a 5.")
+        except Exception as e:
+            print("⚠️ Chyba:", e)
 
 
 if __name__ == "__main__":
