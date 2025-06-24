@@ -6,6 +6,7 @@ from src.spravce_ukolu import (
    odstranit_ukol
 )
 
+
 #pozitivni test pridání úkolu
 def test_pridat_ukol_positive():
     # Přidáme úkol
