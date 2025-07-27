@@ -64,19 +64,20 @@ def pridat_ukol(nazev, popis, conn):
     print("✅ Úkol přidán.")
 
 def zobrazit_ukoly(conn):
-    kurzor = conn.cursor()
+    kurzor = conn.cursor(dictionary=True)
 
     kurzor.execute("SELECT id, nazev, popis, stav FROM ukoly")
     vysledky = kurzor.fetchall()
-
     kurzor.close()
 
     if not vysledky:
         print(" Žádné úkoly zatím nejsou.")
     else:
         print("\n Seznam úkolů:")
-        for id, nazev, popis, stav in vysledky:
-            print(f"ID: {id} | Název: {nazev} | Popis: {popis} | Stav: {stav}")
+        for ukol in vysledky:
+            print(f"ID: {ukol['id']} | Název: {ukol['nazev']} | Popis: {ukol['popis']} | Stav: {ukol['stav']}")
+
+    return vysledky
 
 def ukol_existuje(id_ukolu, conn):
     kurzor = conn.cursor()
@@ -120,6 +121,7 @@ def odstranit_ukol(id_ukolu, conn):
 
 def hlavni_menu():
 
+    vytvor_databazi()
     conn = pripojeni()
     vytvor_tabulku(conn)
 
@@ -141,7 +143,7 @@ def hlavni_menu():
             zobrazit_ukoly(conn)
         elif volba == '3':
             id_ukolu = int(input("Zadej ID úkolu: "))
-            novy_stav = input("Zadej nový stav (Probíhá / Hotovo): ")
+            novy_stav = input("Zadej nový stav (Probíhá / Hotovo): ").strip().lower()
             aktualizovat_ukol(id_ukolu, novy_stav, conn)
         elif volba == '4':
             id_ukolu = int(input("Zadej ID úkolu: "))
